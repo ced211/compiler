@@ -80,6 +80,24 @@ whitespace 	{;}
 "unit" 			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
 "while" 		{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
 
+"{"  			{printf("%d,%d,lbrace\n", line, column); column += yyleng;}
+"}"  			{printf("%d,%d,rbrace\n", line, column); column += yyleng;}
+"("  			{printf("%d,%d,lpar\n", line, column); column += yyleng;}
+")"  			{printf("%d,%d,rpar\n", line, column); column += yyleng;}
+":"  			{printf("%d,%d,colon\n", line, column); column += yyleng;}
+";"  			{printf("%d,%d,semicolon\n", line, column); column += yyleng;}
+","  			{printf("%d,%d,coma\n", line, column); column += yyleng;}
+"+"  			{printf("%d,%d,plus\n", line, column); column += yyleng;}
+"-"  			{printf("%d,%d,minus\n", line, column); column += yyleng;}
+"*"  			{printf("%d,%d,times\n", line, column); column += yyleng;}
+"/"  			{printf("%d,%d,div\n", line, column); column += yyleng;}
+"^"  			{printf("%d,%d,pow\n", line, column); column += yyleng;}
+"."  			{printf("%d,%d,dot\n", line, column); column += yyleng;}
+"="  			{printf("%d,%d,equal\n", line, column); column += yyleng;}
+"<"  			{printf("%d,%d,lower\n", line, column); column += yyleng;}
+"<="  			{printf("%d,%d,lower-equal\n", line, column); column += yyleng;}
+"<-"  			{printf("%d,%d,assign\n", line, column); column += yyleng;}
+
 comment-line {printf("%d,%d,comment-line,%yylengs\n", line, column, yytext); line += 1; columns = 1;}
 
 
