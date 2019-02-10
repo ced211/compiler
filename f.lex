@@ -8,7 +8,7 @@
 	#include <string.h>
 	#include <stdlib.h>
 	
-	int line = 1, int column = 1;
+	unsigned line = 1, unsigned column = 1;
 
 	char* bin2Decimal(char* bin_digit){
 		length = strlen(bin_digit);
@@ -29,6 +29,72 @@
 		sprintf(buffer, "%llu", number);
 		return buffer;
 	}
+	void update_clm_line(char* str,unsigned* column,unsigned* line){
+		i = 0;
+		while(str[i] != '\0'){
+			*column++;
+			if(str[i] == '\n')
+				*column++;
+			if(str[i] == '\r')
+				*column = 1;
+			if(str[i]=='\t')
+				//TODO how to deal with tab and column, column+1?
+		}
+	}
+	char* strValue(char* str){
+		int length = 0;
+		char* value = NULL;
+		while(str[i] != '\0'){
+			length++;
+		}
+		value = malloc(2*sizeof(char)*length);
+		int i = 0;
+		int j = 0;
+		while(str[i] != '\0'){
+			if(str[i] == '\'){
+				i++;
+				if(str[i] == 'n'){
+					value[j] = '\';
+					value[j+1] = 'x';
+					value[j+2] = '0';
+					value[j+3] = 'a';
+					j += 4;
+					continue;
+				}
+				if(str[i] == 'r'){
+					value[j] = '\';
+					value[j+1] = 'x';
+					value[j+2] = '0';
+					value[j+3] = 'd';
+					j += 4;
+					continue;
+				}
+				if(str[i] == 't'){
+					value[j] = '\';
+					value[j+1] = 'x';
+					value[j+2] = '0';
+					value[j+3] = '8';
+					j += 4;
+					continue;
+				}
+				if(str[i] == '\n'){
+					continue;
+				}
+				if(str[i] == '\'){
+					value[j] = '\';
+					j++;
+				}		
+			}
+			else{
+				value[j] = str[i];
+			}
+		i++;
+		j++;
+		}
+		j++;	
+		value[j] = '\0';
+		return value;
+	}
 %}
 
 /* regular definitions */
@@ -43,10 +109,10 @@ tab 				"\t"
 lf 					"\n"
 ff 					"\f" // Go next page page
 cr 					"\r"
-whitespace 			" "|tab|lf|ff|cr 	//TODOOOOOOO decider c'est quoi \n, \r et \r\n car different selon OS
+whitespace 			" "|tab|lf|ff|cr 	//TODOOOOOOO decider c'est quoi \n, \r et \r\n car different selon OS => je pense que c'est le job de gcc et qu'on s'en fout.
 
-comment-line 		"//"(^{lf})*({lf}|<<EOF>>) //TODOOOOOO selon d'autre source le "^" n'a pas la mm signification que dans le cours
-
+comment-line 		("//"(.)*) //"//"(^{lf})*({lf}|<<EOF>>) //TODOOOOOO selon d'autre source le "^" n'a pas la mm signification que dans le cours
+block-comment		("(*"(.|"\n")*"*)")	 
 
 integer-literal 	{digit}+|"0x"{hex-digit}+|"0b"{bin-digit}+
 
@@ -54,10 +120,10 @@ type-identifier 	{uppercase-letter}({letter}|{digit}|"_")*
 
 object-identifier 	{lowercase-letter}({letter}|{digit}|"_")*
 
-escape-sequence 	"b"|"t"|"n"|"r"|'"'|"\"|"x"{hex-digit}{hex-digit}|lf(" "|{tab})*
+escape-sequence 	"b"|"t"|"n"|"r"|'"'|"\"|"x"{hex-digit}	//|lf(" "|{tab})*
 escaped-char 		"\"{escape-sequence}
-regular-char 		
-string-literal		'"'({regular-char}{escaped-char})*'"'
+regular-char 		'[^\n\r<<EOF>>{escaped-char}]'
+string-literal		'"'({regular-char}|{escaped-char})*'"'
 
 lbrace				"{"
 rbrace				"}"
@@ -126,9 +192,12 @@ whitespace 	{;}
 {bin-digit}		{printf("%d,%d,integer-literal,%s\n", line, column, bin2Decimal(yytext)); column += yyleng;}
 {hex-digit}		{printf("%d,%d,integer-literal,%s\n", line, column, hex2Decimal(yytext)); column += yyleng;}
 
+{type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
+{object-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 
-
-comment-line {printf("%d,%d,comment-line,%s\n", line, column, yytext); line += 1; columns = 1;}
+{comment-line} 		{columns += yyleng;}
+{block-comment}		{update_clm_line(yytext,&column,&line);}
+{string-literal}	{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val;free(val);column += yyleng;}
 
 
 %%
