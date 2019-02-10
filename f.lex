@@ -37,8 +37,9 @@
 				*column++;
 			if(str[i] == '\r')
 				*column = 1;
-			if(str[i]=='\t')
+			if(str[i]=='\t'){
 				//TODO how to deal with tab and column, column+1?
+			}
 		}
 	}
 	char* strValue(char* str){
