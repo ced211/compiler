@@ -4,7 +4,31 @@
 */
 
 %{
+	#include <stdio.h>
+	#include <string.h>
+	#include <stdlib.h>
+	
 	int line = 1, int column = 1;
+
+	char* bin2Decimal(char* bin_digit){
+		length = strlen(bin_digit);
+		char* p;
+		char buffer[255];
+		if(length <= 2){
+			//error handling...
+		}
+		char digit[length-1];
+		unsigned long long number = strtoull(&bin_digit[2],p,2);
+		sprintf(buffer, "%llu", number);
+		return buffer;
+	}
+	char* hex2Decimal(char* hex_digit){
+		char*p;
+		char buffer[255];
+		unsigned long long number = strtoull(hex_digit,p,0);
+		sprintf(buffer, "%llu", number);
+		return buffer;
+	}
 %}
 
 /* regular definitions */
@@ -60,27 +84,51 @@ rc 			{column = 1;}
 tab			{column += yyleng;}
 whitespace 	{;}
 
-"and"			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"bool"			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"class"			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"do" 			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"else"			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"extends"		{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"false"			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"if"			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"in" 			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"int32"			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"isnull"		{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"let" 			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"new" 			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"not" 			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"string" 		{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"then" 			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"true" 			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"unit" 			{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
-"while" 		{printf("%d,%d,%yylengs\n", line, column, yytext); column += yyleng;}
+"and"			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"bool"			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"class"			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"do" 			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"else"			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"extends"		{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"false"			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"if"			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"in" 			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"int32"			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"isnull"		{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"let" 			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"new" 			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"not" 			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"string" 		{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"then" 			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"true" 			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"unit" 			{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
+"while" 		{printf("%d,%d,%s\n", line, column, yytext); column += yyleng;}
 
-comment-line {printf("%d,%d,comment-line,%yylengs\n", line, column, yytext); line += 1; columns = 1;}
+"{"  			{printf("%d,%d,lbrace\n", line, column); column += yyleng;}
+"}"  			{printf("%d,%d,rbrace\n", line, column); column += yyleng;}
+"("  			{printf("%d,%d,lpar\n", line, column); column += yyleng;}
+")"  			{printf("%d,%d,rpar\n", line, column); column += yyleng;}
+":"  			{printf("%d,%d,colon\n", line, column); column += yyleng;}
+";"  			{printf("%d,%d,semicolon\n", line, column); column += yyleng;}
+","  			{printf("%d,%d,coma\n", line, column); column += yyleng;}
+"+"  			{printf("%d,%d,plus\n", line, column); column += yyleng;}
+"-"  			{printf("%d,%d,minus\n", line, column); column += yyleng;}
+"*"  			{printf("%d,%d,times\n", line, column); column += yyleng;}
+"/"  			{printf("%d,%d,div\n", line, column); column += yyleng;}
+"^"  			{printf("%d,%d,pow\n", line, column); column += yyleng;}
+"."  			{printf("%d,%d,dot\n", line, column); column += yyleng;}
+"="  			{printf("%d,%d,equal\n", line, column); column += yyleng;}
+"<"  			{printf("%d,%d,lower\n", line, column); column += yyleng;}
+"<="  			{printf("%d,%d,lower-equal\n", line, column); column += yyleng;}
+"<-"  			{printf("%d,%d,assign\n", line, column); column += yyleng;}
+
+{digit}			{printf("%d,%d,integer-literal,%s\n", line, column, yytext); column += yyleng;}
+{bin-digit}		{printf("%d,%d,integer-literal,%s\n", line, column, bin2Decimal(yytext)); column += yyleng;}
+{hex-digit}		{printf("%d,%d,integer-literal,%s\n", line, column, hex2Decimal(yytext)); column += yyleng;}
+
+
+
+comment-line {printf("%d,%d,comment-line,%s\n", line, column, yytext); line += 1; columns = 1;}
 
 
 %%
