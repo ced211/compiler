@@ -46,10 +46,10 @@
 		value = malloc(2*sizeof(char)*length);
 		int j = 0;
 		while(str[i] != '\0'){
-			if(str[i] == '\'){
+			if(str[i] == '\\'){
 				i++;
 				if(str[i] == 'n'){
-					value[j] = '\';
+					value[j] = '\\';
 					value[j+1] = 'x';
 					value[j+2] = '0';
 					value[j+3] = 'a';
@@ -57,7 +57,7 @@
 					continue;
 				}
 				if(str[i] == 'r'){
-					value[j] = '\';
+					value[j] = '\\';
 					value[j+1] = 'x';
 					value[j+2] = '0';
 					value[j+3] = 'd';
@@ -65,7 +65,7 @@
 					continue;
 				}
 				if(str[i] == 't'){
-					value[j] = '\';
+					value[j] = '\\';
 					value[j+1] = 'x';
 					value[j+2] = '0';
 					value[j+3] = '8';
@@ -75,8 +75,8 @@
 				if(str[i] == '\n'){
 					continue;
 				}
-				if(str[i] == '\'){
-					value[j] = '\';
+				if(str[i] == '\\'){
+					value[j] = '\\';
 					j++;
 				}		
 			}
@@ -190,9 +190,9 @@ whitespace 	{;}
 {type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 {object-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 
-{comment-line} 		{columns += yyleng;}
+{comment-line} 		{column += yyleng;}
 {block-comment}		{update_clm_line(yytext,&column,&line);}
-{string-literal}	{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val;free(val);column += yyleng;}
+{string-literal}	{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
 
 
 %%
