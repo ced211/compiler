@@ -8,29 +8,26 @@
 	#include <string.h>
 	#include <stdlib.h>
 	
-	unsigned line = 1, unsigned column = 1;
+	unsigned line = 1;
+	unsigned column = 1;
 
 	char* bin2Decimal(char* bin_digit){
-		length = strlen(bin_digit);
-		char* p;
+		unsigned length = strlen(bin_digit);
+		char** p;
 		char buffer[255];
-		if(length <= 2){
-			//error handling...
-		}
-		char digit[length-1];
 		unsigned long long number = strtoull(&bin_digit[2],p,2);
 		sprintf(buffer, "%llu", number);
 		return buffer;
 	}
 	char* hex2Decimal(char* hex_digit){
-		char*p;
+		char** p;
 		char buffer[255];
-		unsigned long long number = strtoull(hex_digit,p,0);
+		unsigned long long number = strtoull(&hex_digit[2],p,16);
 		sprintf(buffer, "%llu", number);
 		return buffer;
 	}
 	void update_clm_line(char* str,unsigned* column,unsigned* line){
-		i = 0;
+		unsigned i = 0;
 		while(str[i] != '\0'){
 			*column++;
 			if(str[i] == '\n')
@@ -43,13 +40,10 @@
 		}
 	}
 	char* strValue(char* str){
-		int length = 0;
+		unsigned length = strlen(str);
 		char* value = NULL;
-		while(str[i] != '\0'){
-			length++;
-		}
+		unsigned i =0;
 		value = malloc(2*sizeof(char)*length);
-		int i = 0;
 		int j = 0;
 		while(str[i] != '\0'){
 			if(str[i] == '\'){
@@ -112,7 +106,7 @@ ff 					"\f" // Go next page page
 cr 					"\r"
 whitespace 			" "|tab|lf|ff|cr 	//TODOOOOOOO decider c'est quoi \n, \r et \r\n car different selon OS => je pense que c'est le job de gcc et qu'on s'en fout.
 
-comment-line 		("//"(.)*) //"//"(^{lf})*({lf}|<<EOF>>) //TODOOOOOO selon d'autre source le "^" n'a pas la mm signification que dans le cours
+comment-line 		("//"(.)*) 
 block-comment		("(*"(.|"\n")*"*)")	 
 
 integer-literal 	{digit}+|"0x"{hex-digit}+|"0b"{bin-digit}+
@@ -189,9 +183,9 @@ whitespace 	{;}
 "<="  			{printf("%d,%d,lower-equal\n", line, column); column += yyleng;}
 "<-"  			{printf("%d,%d,assign\n", line, column); column += yyleng;}
 
-{digit}			{printf("%d,%d,integer-literal,%s\n", line, column, yytext); column += yyleng;}
-{bin-digit}		{printf("%d,%d,integer-literal,%s\n", line, column, bin2Decimal(yytext)); column += yyleng;}
-{hex-digit}		{printf("%d,%d,integer-literal,%s\n", line, column, hex2Decimal(yytext)); column += yyleng;}
+{digit}+		{printf("%d,%d,integer-literal,%s\n", line, column, yytext); column += yyleng;}
+"0x"{bin-digit}+	{printf("%d,%d,integer-literal,%s\n", line, column, bin2Decimal(yytext)); column += yyleng;}
+"0x"{hex-digit}+	{printf("%d,%d,integer-literal,%s\n", line, column, hex2Decimal(yytext)); column += yyleng;}
 
 {type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 {object-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
