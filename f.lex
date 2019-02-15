@@ -10,40 +10,37 @@
 	
 	unsigned line = 1;
 	unsigned column = 1;
+	char buffer[1000];
 
-	char* bin2Decimal(char* bin_digit){
-		unsigned length = strlen(bin_digit);
+	void bin2Decimal(char* bin_digit,char* buffer){
 		char** p;
-		char buffer[255];
-		unsigned long long number = strtoull(&bin_digit[2],p,2);
-		sprintf(buffer, "%llu", number);
-		return buffer;
+		unsigned long number = 0;
+		number = strtoul(&bin_digit[2],p,2);
+		sprintf(buffer, "%lu", number);
+		return;
 	}
-	char* hex2Decimal(char* hex_digit){
+	void hex2Decimal(char* hex_digit,char* buffer){
 		char** p;
-		char buffer[255];
-		unsigned long long number = strtoull(&hex_digit[2],p,16);
-		sprintf(buffer, "%llu", number);
-		return buffer;
+		unsigned long number = 0;
+		number = strtoul(&hex_digit[2],p,16);
+		sprintf(buffer, "%lu", number);
+		return;
 	}
 	void update_clm_line(char* str,unsigned* column,unsigned* line){
 		unsigned i = 0;
 		while(str[i] != '\0'){
 			*column++;
 			if(str[i] == '\n')
-				*column++;
+				*line++;
 			if(str[i] == '\r')
 				*column = 1;
-			if(str[i]=='\t'){
-				//TODO how to deal with tab and column, column+1?
-			}
 		}
 	}
 	char* strValue(char* str){
 		unsigned length = strlen(str);
 		char* value = NULL;
 		unsigned i =0;
-		value = malloc(2*sizeof(char)*length);
+		value = (char*) malloc(2*sizeof(char)*length);
 		int j = 0;
 		while(str[i] != '\0'){
 			if(str[i] == '\\'){
@@ -53,40 +50,35 @@
 					value[j+1] = 'x';
 					value[j+2] = '0';
 					value[j+3] = 'a';
-					j += 4;
-					continue;
+					j += 3;
 				}
 				if(str[i] == 'r'){
 					value[j] = '\\';
 					value[j+1] = 'x';
 					value[j+2] = '0';
 					value[j+3] = 'd';
-					j += 4;
-					continue;
+					j += 3;
 				}
 				if(str[i] == 't'){
 					value[j] = '\\';
 					value[j+1] = 'x';
 					value[j+2] = '0';
 					value[j+3] = '8';
-					j += 4;
-					continue;
-				}
-				if(str[i] == '\n'){
-					continue;
+					j += 3;
 				}
 				if(str[i] == '\\'){
 					value[j] = '\\';
-					j++;
+				}
+				else{
+					value[j] = str[i];
 				}		
 			}
 			else{
 				value[j] = str[i];
 			}
-		i++;
-		j++;
+			i++;
+			j++;
 		}
-		j++;	
 		value[j] = '\0';
 		return value;
 	}
@@ -95,19 +87,18 @@
 /* regular definitions */
 lowercase-letter 	[a-z]
 uppercase-letter 	[A-Z]
-letter 				{lowercase-letter}|{uppercase-letter}
-bin-digit 			0|1
-digit 				({bin-digit}|[2-9])
-hex-digit 			({digit}|[a-fA-F])
-
-tab 				"\t"
-lf 					"\n"
-ff 					"\f" // Go next page page
-cr 					"\r"
-whitespace 			" "|tab|lf|ff|cr 	//TODOOOOOOO decider c'est quoi \n, \r et \r\n car different selon OS => je pense que c'est le job de gcc et qu'on s'en fout.
+letter 			{lowercase-letter}|{uppercase-letter}
+bin-digit 		0|1
+digit 			({bin-digit}|[2-9])
+hex-digit 		({digit}|[a-fA-F])
+tab 			"\t"
+lf 			"\n"
+ff 			"\f"  
+cr 			"\r" 
+whitespace 		" "|tab|lf|ff|cr 	
 
 comment-line 		("//"(.)*) 
-block-comment		("(*"(.|"\n")*"*)")	 
+block-comment		("(*"(.|{whitespace})*"*)")
 
 integer-literal 	{digit}+|"0x"{hex-digit}+|"0b"{bin-digit}+
 
@@ -117,8 +108,8 @@ object-identifier 	{lowercase-letter}({letter}|{digit}|"_")*
 
 escape-sequence 	"b"|"t"|"n"|"r"|'"'|"\"|"x"{hex-digit}	//|lf(" "|{tab})*
 escaped-char 		"\"{escape-sequence}
-regular-char 		'[^\n\r<<EOF>>{escaped-char}]'
-string-literal		'"'({regular-char}|{escaped-char})*'"'
+regular-char 		^[\n\r{escaped-char}]
+string-literal		("\""({regular-char}|{escaped-char})*"\"") 
 
 lbrace				"{"
 rbrace				"}"
@@ -130,16 +121,17 @@ comma				","
 plus				"+"
 minus				"-"
 times				"*"
-div					"/"
-pow					"^"
-dot					"."
+div				"/"
+pow				"^"
+dot				"."
 equal				"="
 lower				"<"
 lower-equal			"<="
 assign				"<-"
 
 %%
-		//TODOOOOOOOOO utiliser la fct yylloc au lieu d'utiliser des variables perso pour colonne et ligne
+	//RULES 
+	//TODO utiliser la fct yylloc au lieu d'utiliser des variables perso pour colonne et ligne
 lf			{line += 1;}
 rc 			{column = 1;}
 tab			{column += yyleng;}
@@ -184,15 +176,15 @@ whitespace 	{;}
 "<-"  			{printf("%d,%d,assign\n", line, column); column += yyleng;}
 
 {digit}+		{printf("%d,%d,integer-literal,%s\n", line, column, yytext); column += yyleng;}
-"0x"{bin-digit}+	{printf("%d,%d,integer-literal,%s\n", line, column, bin2Decimal(yytext)); column += yyleng;}
-"0x"{hex-digit}+	{printf("%d,%d,integer-literal,%s\n", line, column, hex2Decimal(yytext)); column += yyleng;}
+"0b"{bin-digit}+	{bin2Decimal(yytext,buffer); printf("%d,%d,integer-literal,%s\n", line, column, buffer); column += yyleng;}
+"0x"{hex-digit}+	{hex2Decimal(yytext,buffer); printf("%d,%d,integer-literal,%s\n", line, column,buffer); column += yyleng;}
 
 {type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 {object-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 
 {comment-line} 		{column += yyleng;}
 {block-comment}		{update_clm_line(yytext,&column,&line);}
-{string-literal}	{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
+("\""(.)*"\"")	{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
 
 
 %%
