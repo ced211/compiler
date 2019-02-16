@@ -121,17 +121,16 @@ comma				","
 plus				"+"
 minus				"-"
 times				"*"
-div				"/"
-pow				"^"
-dot				"."
+div					"/"
+pow					"^"
+dot					"."
 equal				"="
 lower				"<"
 lower-equal			"<="
 assign				"<-"
 
 %%
-	//RULES 
-	//TODO utiliser la fct yylloc au lieu d'utiliser des variables perso pour colonne et ligne
+
 lf			{line += 1;}
 rc 			{column = 1;}
 tab			{column += yyleng;}

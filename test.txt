@@ -1,0 +1,3 @@
+int a = 32;
+float b = 12.5;
+return a*b;
