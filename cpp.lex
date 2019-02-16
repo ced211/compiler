@@ -95,12 +95,8 @@ lowercase-letter 	[a-z]
 uppercase-letter 	[A-Z]
 letter 			{lowercase-letter}|{uppercase-letter}
 bin-digit 		0|1
-digit 			({bin-digit}|[2-9])
-hex-digit 		({digit}|[a-fA-F])
-tab 			'\t'
-ff 				'\f'  
-cr 				'\r' 
-whitespace 		" "|tab|ff|cr 	
+digit 			{bin-digit}|[2-9]
+hex-digit 		{digit}|[a-fA-F]	
 
 comment-line 		("//"(.)*) 
 block-comment		("(*"(.|{whitespace})*"*)")
@@ -136,10 +132,9 @@ assign				"<-"
 
 %%
 
-\n			{line += 1; column = 1;}
-rc 			{column = 1;}
-tab			{column += yyleng;}
-whitespace 	{;}
+\n			{line += 1;}
+\r 			{column = 1;}
+[ \t\f] 	{column += yyleng;}
 
 "and"			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
 "bool"			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
@@ -189,6 +184,16 @@ whitespace 	{;}
 {comment-line} 		{column += yyleng;}
 {block-comment}		{update_clm_line(yytext,&column,&line);}
 ("\""(.)*"\"")		{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
+
+<INITIAL>{
+"(*"              BEGIN(IN_COMMENT);
+}
+<IN_COMMENT>{
+"*)"      BEGIN(INITIAL);
+[^*\n]+   // eat comment in chunks
+"*"       // eat the lone star
+\n        line++;
+}
 
 . 				{cerr << "Unroconized token: " << line << coma << column << coma << yytext << endl; column += yyleng;}
 
