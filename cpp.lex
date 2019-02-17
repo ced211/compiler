@@ -105,8 +105,6 @@ comment-line 		"//"[^\n\r]*
 
 integer-literal 	{digit}+|"0x"{hex-digit}+|"0b"{bin-digit}+
 
-integer-literal-wb 	{digit}+|"0x"{hex-digit}+
-
 type-identifier 	{uppercase-letter}({letter}|{digit}|"_")*
 
 object-identifier 	{lowercase-letter}({letter}|{digit}|"_")*
@@ -138,7 +136,7 @@ operators 			({lbrace}|{rbrace}|{lpar}|{rpar}|{colon}|{semicolon}|{comma}|{plus}
 
 custom 				[^ \t\n\r\f\{\}\(\)\:;,+\-\*\/\^.=<"<=""<\-"]
 
-%x l_comment b_comment bin_int lit_error
+%x l_comment b_comment  lit_error
 
 %%
 
@@ -185,9 +183,7 @@ custom 				[^ \t\n\r\f\{\}\(\)\:;,+\-\*\/\^.=<"<=""<\-"]
 "<-"  			{cout << line << coma << column << coma << "assign" << endl; column += yyleng;}
 
 {digit}+				{cout << line << coma << column << coma << "integer-literal" << coma << yytext << endl; column += yyleng;}
-"0b"					{yy_push_state(bin_int);}
-<bin_int>{bin-digit}+	{cout << line << coma << column << coma << "integer-literal" << coma << stoi(yytext, nullptr, 2) << endl; column += yyleng+2; yy_pop_state();}
-<bin_int>{custom}*		{cerr << "Unrecognized token: " << line << coma << column << coma << "@0b'" << yytext<<"'"<< endl; column += yyleng+2; yy_pop_state();}
+"0b"{bin-digit}+		{string buff = yytext; cout << line << coma << column << coma << "integer-literal" << coma << stoi(buff.erase(0, 2), nullptr, 2) << endl; column += yyleng;}
 "0x"{hex-digit}+		{cout << line << coma << column << coma << "integer-literal" << coma << stoi(yytext, nullptr, 0) << endl; column += yyleng;}
 
 {type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
@@ -211,7 +207,7 @@ custom 				[^ \t\n\r\f\{\}\(\)\:;,+\-\*\/\^.=<"<=""<\-"]
 
 <<EOF>>						{cout << "End of file dear" << endl; return 0;}
 .							{cerr << "Unrecognized token: " << line << coma << column << coma << yytext << endl; column += yyleng;}
-{integer-literal-wb}{custom}* {cerr << "Unrecognized token: " << line << coma << column << coma <<"@@'"<< yytext <<"'"<< endl; column += yyleng;}
+{integer-literal}{custom}* {cerr << "Unrecognized token: " << line << coma << column << coma <<"'"<< yytext <<"'"<< endl; column += yyleng;}
 
 %%
 int main(int argc, char** argv) {
