@@ -14,6 +14,7 @@
 	const char coma = ',';
 	unsigned line = 1;
 	unsigned column = 1;
+	string str;
 	char buffer[1000];
 
 	void bin2Decimal(char* bin_digit,char* buffer){
@@ -109,7 +110,7 @@ type-identifier 	{uppercase-letter}({letter}|{digit}|"_")*
 
 object-identifier 	{lowercase-letter}({letter}|{digit}|"_")*
 
-escape-sequence 	"b"|"t"|"n"|"r"|'"'|"\"|"x"{hex-digit}	//|lf(" "|{tab})*
+escape-sequence 	"b"|"t"|"n"|"r"|'"'|"\"|"x"{hex-digit}{2}	//|lf(" "|{tab})*
 escaped-char 		"\"{escape-sequence}
 regular-char 		^[\n\r{escaped-char}]
 string-literal		("\""({regular-char}|{escaped-char})*"\"") 
@@ -136,7 +137,7 @@ operators 			({lbrace}|{rbrace}|{lpar}|{rpar}|{colon}|{semicolon}|{comma}|{plus}
 
 custom 				[^ \t\n\r\f\{\}\(\)\:;,+\-\*\/\^.=<"<=""<\-"]
 
-%x l_comment b_comment  lit_error
+%x l_comment b_comment str_lit
 
 %%
 
@@ -189,9 +190,11 @@ custom 				[^ \t\n\r\f\{\}\(\)\:;,+\-\*\/\^.=<"<=""<\-"]
 {type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 {object-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 
-{comment-line} 		{column += yyleng; yy_push_state(l_comment);}
-<l_comment>\n 		{line++; yy_pop_state();}
-<l_comment><<EOF>> 	{yy_pop_state();}
+{comment-line} 			{column += yyleng; yy_push_state(l_comment);}
+<l_comment>[^\n\r]*\n 	{column += yyleng; line++; yy_pop_state();}
+<l_comment>[^\n\r]*\r 	{column = 1; yy_push_state(l_comment); yy_pop_state();}
+<l_comment><<EOF>> 		{yy_pop_state();}
+
 
 ("\""(.)*"\"")		{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
 
