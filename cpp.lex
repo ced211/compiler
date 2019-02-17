@@ -89,6 +89,7 @@
 %}
 
 %option noyywrap
+%option stack
 
 /* regular definitions */
 lowercase-letter 	[a-z]
@@ -98,8 +99,7 @@ bin-digit 		0|1
 digit 			{bin-digit}|[2-9]
 hex-digit 		{digit}|[a-fA-F]	
 
-comment-line 		("//"(.)*) 
-block-comment		("(*"(.|{whitespace})*"*)")
+comment-line 		"//".*
 
 integer-literal 	{digit}+|"0x"{hex-digit}+|"0b"{bin-digit}+
 
@@ -129,6 +129,8 @@ equal				"="
 lower				"<"
 lower-equal			"<="
 assign				"<-"
+
+%x comment
 
 %%
 
@@ -181,19 +183,18 @@ assign				"<-"
 {type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 {object-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 
-{comment-line} 		{column += yyleng;}
-{block-comment}		{update_clm_line(yytext,&column,&line);}
+{comment-line}\n 		{column += yyleng;}
 ("\""(.)*"\"")		{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
 
-<INITIAL>{
-"(*"              BEGIN(IN_COMMENT);
-}
-<IN_COMMENT>{
-"*)"      BEGIN(INITIAL);
-[^*\n]+   // eat comment in chunks
-"*"       // eat the lone star
-\n        line++;
-}
+
+"(*"         {cout << yytext; yy_push_state(comment);}
+
+<comment>"(*"			{cout << yytext << std::to_string(yy_top_state()) ; yy_push_state(comment);}
+<comment>[^(*)\n]*      {column += yyleng; cout << yytext;}  /* eat anything that's not a '*' a '(' or a ')' */
+<comment>"*"+[^(*)\n]*   {column += yyleng; cout << yytext;}/* eat up '*'s not followed by ')'s */
+<comment>"("+[^(*\n]*	{column += yyleng; cout << yytext;}
+<comment>\n             {line++; cout << endl; yy_push_state(comment);}
+<comment>"*)"        	{cout << yytext; yy_pop_state();}
 
 . 				{cerr << "Unroconized token: " << line << coma << column << coma << yytext << endl; column += yyleng;}
 
