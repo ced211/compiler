@@ -5,7 +5,7 @@
 
 %{
 	#include <stdio.h>
-	#include <string.h>
+	#include <string>
 	#include <stdlib.h>
 	#include <iostream>
   	using namespace std;
@@ -95,11 +95,11 @@
 lowercase-letter 	[a-z]
 uppercase-letter 	[A-Z]
 letter 			{lowercase-letter}|{uppercase-letter}
-bin-digit 		0|1
+bin-digit 		[0-1]
 digit 			{bin-digit}|[2-9]
 hex-digit 		{digit}|[a-fA-F]	
 
-comment-line 		"//".*
+comment-line 		"//"[^\n\r]*
 
 integer-literal 	{digit}+|"0x"{hex-digit}+|"0b"{bin-digit}+
 
@@ -130,7 +130,7 @@ lower				"<"
 lower-equal			"<="
 assign				"<-"
 
-%x comment
+%x l_comment b_comment bin_int
 
 %%
 
@@ -176,26 +176,31 @@ assign				"<-"
 "<="  			{cout << line << coma << column << coma << "lower-equal" << endl; column += yyleng;}
 "<-"  			{cout << line << coma << column << coma << "assign" << endl; column += yyleng;}
 
-{digit}+		{cout << line << coma << column << coma << "integer-literal" << coma << yytext << endl; printf("%d,%d,integer-literal,%s\n", line, column, yytext); column += yyleng;}
-"0b"{bin-digit}+	{bin2Decimal(yytext,buffer); printf("%d,%d,integer-literal,%s\n", line, column, buffer); column += yyleng;}
-"0x"{hex-digit}+	{hex2Decimal(yytext,buffer); printf("%d,%d,integer-literal,%s\n", line, column,buffer); column += yyleng;}
+{digit}+				{cout << line << coma << column << coma << "integer-literal" << coma << yytext << endl; column += yyleng;}
+"0b"					{yy_push_state(bin_int);}
+<bin_int>{bin-digit}+	{cout << line << coma << column << coma << "interger-literal" << coma << stoi(yytext, nullptr, 2) << endl; column += yyleng + 2; yy_pop_state();}
+"0x"{hex-digit}+		{cout << line << coma << column << coma << "interger-literal" << coma << stoi(yytext, nullptr, 0) << endl; column += yyleng;}
 
 {type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 {object-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 
-{comment-line}\n 		{column += yyleng;}
+{comment-line} 		{column += yyleng; yy_push_state(l_comment);}
+<l_comment>\n 		{line++; yy_pop_state();}
+<l_comment><<EOF>> 		{yy_pop_state();}
+
 ("\""(.)*"\"")		{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
 
 
-"(*"         {cout << yytext; yy_push_state(comment);}
+"(*"         {cout << yytext; yy_push_state(b_comment);}
 
-<comment>"(*"			{cout << yytext << std::to_string(yy_top_state()) ; yy_push_state(comment);}
-<comment>[^(*)\n]*      {column += yyleng; cout << yytext;}  /* eat anything that's not a '*' a '(' or a ')' */
-<comment>"*"+[^(*)\n]*   {column += yyleng; cout << yytext;}/* eat up '*'s not followed by ')'s */
-<comment>"("+[^(*\n]*	{column += yyleng; cout << yytext;}
-<comment>\n             {line++; cout << endl; yy_push_state(comment);}
-<comment>"*)"        	{cout << yytext; yy_pop_state();}
+<b_comment>"(*"			{cout << yytext; yy_push_state(b_comment);}
+<b_comment>[^(*)\n]*      {column += yyleng; cout << yytext;}  /* eat anything that's not a '*' a '(' or a ')' */
+<b_comment>"*"+[^(*)\n]*   {column += yyleng; cout << yytext;}/* eat up '*'s not followed by ')'s */
+<b_comment>"("+[^(*\n]*	{column += yyleng; cout << yytext;}
+<b_comment>\n             {line++; cout << endl; yy_push_state(b_comment);}
+<b_comment>"*)"        	{cout << yytext; yy_pop_state();}
 
+<<EOF>>			{cout << "End of file dear" << endl; return 0;}
 . 				{cerr << "Unroconized token: " << line << coma << column << coma << yytext << endl; column += yyleng;}
 
 %%

@@ -2,6 +2,8 @@
 
 <u>TODO:</u>
 
-- [ ] Line comments with <<EOF>>
+- [x] Line comments with <<EOF>>
 - [x] Comment blocks with Stack mechanism
+- [x] Integer-literals
+- [ ] Fault handler
 
