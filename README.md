@@ -4,6 +4,6 @@
 
 - [x] Line comments with <<EOF>>
 - [x] Comment blocks with Stack mechanism
-- [x] Integer-literals
+- [ ] Integer-literals (prob avec binaries 0b1011)
 - [ ] Fault handler
 

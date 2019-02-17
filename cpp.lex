@@ -97,11 +97,15 @@ uppercase-letter 	[A-Z]
 letter 			{lowercase-letter}|{uppercase-letter}
 bin-digit 		[0-1]
 digit 			{bin-digit}|[2-9]
-hex-digit 		{digit}|[a-fA-F]	
+hex-digit 		{digit}|[a-fA-F]
+
+whitespaces 	\n|\f|\r|\t|" "	
 
 comment-line 		"//"[^\n\r]*
 
 integer-literal 	{digit}+|"0x"{hex-digit}+|"0b"{bin-digit}+
+
+integer-literal-wb 	{digit}+|"0x"{hex-digit}+
 
 type-identifier 	{uppercase-letter}({letter}|{digit}|"_")*
 
@@ -130,7 +134,11 @@ lower				"<"
 lower-equal			"<="
 assign				"<-"
 
-%x l_comment b_comment bin_int
+operators 			({lbrace}|{rbrace}|{lpar}|{rpar}|{colon}|{semicolon}|{comma}|{plus}|{minus}|{times}|{div}|{pow}|{dot}|{equal}|{lower}|{lower-equal}|{assign})
+
+custom 				[^ \t\n\r\f\{\}\(\)\:;,+\-\*\/\^.=<"<=""<\-"]
+
+%x l_comment b_comment bin_int lit_error
 
 %%
 
@@ -178,30 +186,32 @@ assign				"<-"
 
 {digit}+				{cout << line << coma << column << coma << "integer-literal" << coma << yytext << endl; column += yyleng;}
 "0b"					{yy_push_state(bin_int);}
-<bin_int>{bin-digit}+	{cout << line << coma << column << coma << "interger-literal" << coma << stoi(yytext, nullptr, 2) << endl; column += yyleng + 2; yy_pop_state();}
-"0x"{hex-digit}+		{cout << line << coma << column << coma << "interger-literal" << coma << stoi(yytext, nullptr, 0) << endl; column += yyleng;}
+<bin_int>{bin-digit}+	{cout << line << coma << column << coma << "integer-literal" << coma << stoi(yytext, nullptr, 2) << endl; column += yyleng+2; yy_pop_state();}
+<bin_int>{custom}*		{cerr << "Unrecognized token: " << line << coma << column << coma << "@0b'" << yytext<<"'"<< endl; column += yyleng+2; yy_pop_state();}
+"0x"{hex-digit}+		{cout << line << coma << column << coma << "integer-literal" << coma << stoi(yytext, nullptr, 0) << endl; column += yyleng;}
 
 {type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 {object-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
 
 {comment-line} 		{column += yyleng; yy_push_state(l_comment);}
 <l_comment>\n 		{line++; yy_pop_state();}
-<l_comment><<EOF>> 		{yy_pop_state();}
+<l_comment><<EOF>> 	{yy_pop_state();}
 
 ("\""(.)*"\"")		{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
 
 
 "(*"         {cout << yytext; yy_push_state(b_comment);}
 
-<b_comment>"(*"			{cout << yytext; yy_push_state(b_comment);}
-<b_comment>[^(*)\n]*      {column += yyleng; cout << yytext;}  /* eat anything that's not a '*' a '(' or a ')' */
-<b_comment>"*"+[^(*)\n]*   {column += yyleng; cout << yytext;}/* eat up '*'s not followed by ')'s */
-<b_comment>"("+[^(*\n]*	{column += yyleng; cout << yytext;}
-<b_comment>\n             {line++; cout << endl; yy_push_state(b_comment);}
-<b_comment>"*)"        	{cout << yytext; yy_pop_state();}
+<b_comment>"(*"				{cout << yytext; yy_push_state(b_comment);}
+<b_comment>[^(*)\n]*      	{column += yyleng; cout << yytext;}  /* eat anything that's not a '*' a '(' or a ')' */
+<b_comment>"*"+[^(*)\n]*   	{column += yyleng; cout << yytext;}/* eat up '*'s not followed by ')'s */
+<b_comment>"("+[^(*\n]*		{column += yyleng; cout << yytext;}
+<b_comment>\n           	{line++; cout << endl;}
+<b_comment>"*)"        		{cout << yytext; yy_pop_state();}
 
-<<EOF>>			{cout << "End of file dear" << endl; return 0;}
-. 				{cerr << "Unroconized token: " << line << coma << column << coma << yytext << endl; column += yyleng;}
+<<EOF>>						{cout << "End of file dear" << endl; return 0;}
+.							{cerr << "Unrecognized token: " << line << coma << column << coma << yytext << endl; column += yyleng;}
+{integer-literal-wb}{custom}* {cerr << "Unrecognized token: " << line << coma << column << coma <<"@@'"<< yytext <<"'"<< endl; column += yyleng;}
 
 %%
 int main(int argc, char** argv) {

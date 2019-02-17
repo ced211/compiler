@@ -1,10 +1,1 @@
-		bijour 
-int a = 32;
-float b = 12.5;
-return a*b;
-(* *Niquez des dromadaire biatch(* Heloo *)  *)
-32 0b010 0b111 0x1e 0x12fd
-int a hello *)
-// boy 
-donnez moi
-// 			manem
+0b101 {0b101 a 0x22 g 32a 0xFF))
