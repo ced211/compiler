@@ -14,17 +14,24 @@
 	const char coma = ',';
 	unsigned line = 1;
 	unsigned column = 1;
+	unsigned temp_line;
+	unsigned temp_column;
+	bool str_error;
 	string str;
 	char buffer[1000];
 
 	void printToken(string token){
 		cout << line << coma << column << coma << token << endl;
-		column += yyleng;	
+		column += yyleng;
 	}
 
 	void printToken(string type, string token){
 		cout << line << coma << column << coma << type << coma << token << endl;
 		column += yyleng;
+	}
+
+	void faultHandler(){
+		cout << "ERROR string literal" << endl;
 	}
 
 	void bin2Decimal(char* bin_digit,char* buffer){
@@ -120,10 +127,8 @@ type-identifier 	{uppercase-letter}({letter}|{digit}|"_")*
 
 object-identifier 	{lowercase-letter}({letter}|{digit}|"_")*
 
-escape-sequence 	"b"|"t"|"n"|"r"|'"'|"\"|"x"{hex-digit}{2}	//|lf(" "|{tab})*
-escaped-char 		"\"{escape-sequence}
-regular-char 		^[\n\r{escaped-char}]
-string-literal		("\""({regular-char}|{escaped-char})*"\"") 
+escape-sequence 	b|t|r|\"|\\|x{hex-digit}{2}
+escaped-char 		\\{escape-sequence}
 
 lbrace				"{"
 rbrace				"}"
@@ -205,8 +210,13 @@ custom 				[^ \t\n\r\f\{\}\(\)\:;,+\-\*\/\^.=<"<=""<\-"]
 <l_comment>[^\n\r]*\r 	{column = 1; yy_push_state(l_comment); yy_pop_state();}
 <l_comment><<EOF>> 	{yy_pop_state();}
 
-
-("\""(.)*"\"")		{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
+\"							{str.clear(); str.append(yytext); str_error = false; temp_line = 0; temp_column = 1; yy_push_state(str_lit); if(!str_error){printToken("string-literal", str); column += --temp_column; line += temp_line;}else{faultHandler();}}
+<str_lit>{escaped-char} 	{str.append(yytext); temp_column += yyleng;}
+<str_lit>\" 				{str.append(yytext); yy_pop_state();}
+<str_lit>\\\n{whitespaces}* {temp_column += yyleng-1; temp_line++;}
+<str_lit>[^\n\0				{str.append(yytext); temp_column += yyleng;}
+<str_lit>(\n|\0)  			{str_error = true; yy_pop_state();}
+<str_lit><<EOF>>			{str_error = true; yy_pop_state();}
 
 
 "(*"         {cout << yytext; yy_push_state(b_comment);}
