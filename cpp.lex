@@ -17,6 +17,16 @@
 	string str;
 	char buffer[1000];
 
+	void printToken(string token){
+		cout << line << coma << column << coma << token << endl;
+		column += yyleng;	
+	}
+
+	void printToken(string type, string token){
+		cout << line << coma << column << coma << type << coma << token << endl;
+		column += yyleng;
+	}
+
 	void bin2Decimal(char* bin_digit,char* buffer){
 		char** p;
 		unsigned long number = 0;
@@ -125,9 +135,9 @@ comma				","
 plus				"+"
 minus				"-"
 times				"*"
-div					"/"
-pow					"^"
-dot					"."
+div				"/"
+pow				"^"
+dot				"."
 equal				"="
 lower				"<"
 lower-equal			"<="
@@ -143,57 +153,57 @@ custom 				[^ \t\n\r\f\{\}\(\)\:;,+\-\*\/\^.=<"<=""<\-"]
 
 \n			{line += 1;}
 \r 			{column = 1;}
-[ \t\f] 	{column += yyleng;}
+[ \t\f] 		{column += yyleng;}
 
-"and"			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"bool"			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"class"			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"do" 			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"else"			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"extends"		{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"false"			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"if"			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"in" 			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"int32"			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"isnull"		{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"let" 			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"new" 			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"not" 			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"string" 		{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"then" 			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"true" 			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"unit" 			{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
-"while" 		{cout << line << coma << column << coma << yytext << endl; column += yyleng;}
+"and"			printToken(yytext);
+"bool"			printToken(yytext);
+"class"			printToken(yytext);
+"do" 			printToken(yytext);
+"else"			printToken(yytext);
+"extends"		printToken(yytext);
+"false"			printToken(yytext);
+"if"			printToken(yytext);
+"in" 			printToken(yytext);
+"int32"			printToken(yytext);
+"isnull"		printToken(yytext);
+"let" 			printToken(yytext);
+"new" 			printToken(yytext);
+"not" 			printToken(yytext);
+"string" 		printToken(yytext);
+"then" 			printToken(yytext);
+"true" 			printToken(yytext);
+"unit" 			printToken(yytext);
+"while" 		printToken(yytext);
 
-"{"  			{cout << line << coma << column << coma << "lbrace" << endl; column += yyleng;}
-"}"  			{cout << line << coma << column << coma << "rbrace" << endl; column += yyleng;}
-"("  			{cout << line << coma << column << coma << "lpar" << endl; column += yyleng;}
-")"  			{cout << line << coma << column << coma << "rpar" << endl; column += yyleng;}
-":"  			{cout << line << coma << column << coma << "colon" << endl; column += yyleng;}
-";"  			{cout << line << coma << column << coma << "semicolon" << endl; column += yyleng;}
-","  			{cout << line << coma << column << coma << "coma" << endl; column += yyleng;}
-"+"  			{cout << line << coma << column << coma << "plus" << endl; column += yyleng;}
-"-"  			{cout << line << coma << column << coma << "minus" << endl; column += yyleng;}
-"*"  			{cout << line << coma << column << coma << "times" << endl; column += yyleng;}
-"/"  			{cout << line << coma << column << coma << "div" << endl; column += yyleng;}
-"^"  			{cout << line << coma << column << coma << "pow" << endl; column += yyleng;}
-"."  			{cout << line << coma << column << coma << "dot" << endl; column += yyleng;}
-"="  			{cout << line << coma << column << coma << "equal" << endl; column += yyleng;}
-"<"  			{cout << line << coma << column << coma << "lower" << endl; column += yyleng;}
-"<="  			{cout << line << coma << column << coma << "lower-equal" << endl; column += yyleng;}
-"<-"  			{cout << line << coma << column << coma << "assign" << endl; column += yyleng;}
+"{"  			printToken("lbrace");
+"}"  			printToken("rbrace");
+"("  			printToken("lpar");
+")"  			printToken("rpar");
+":"  			printToken("colon");
+";"  			printToken("semicolon");
+","  			printToken("coma");
+"+"  			printToken("plus");
+"-"  			printToken("minus");
+"*"  			printToken("times");
+"/"  			printToken("div");
+"^"  			printToken("pow");
+"."  			printToken("dot");
+"="  			printToken("equal");
+"<"  			printToken("lower");
+"<="  			printToken("lower-equal");
+"<-"  			printToken("assign");
 
-{digit}+				{cout << line << coma << column << coma << "integer-literal" << coma << yytext << endl; column += yyleng;}
-"0b"{bin-digit}+		{string buff = yytext; cout << line << coma << column << coma << "integer-literal" << coma << stoi(buff.erase(0, 2), nullptr, 2) << endl; column += yyleng;}
-"0x"{hex-digit}+		{cout << line << coma << column << coma << "integer-literal" << coma << stoi(yytext, nullptr, 0) << endl; column += yyleng;}
+{digit}+		printToken("integer-literal", yytext);
+"0b"{bin-digit}+	{string buff = yytext; printToken("integer-literal", to_string(stoi(buff.erase(0, 2), nullptr, 2)));}
+"0x"{hex-digit}+	printToken("integer-literal", to_string(stoi(yytext, nullptr, 0)));
 
-{type-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
-{object-identifier}	{printf("%d,%d,type-identifier,%s\n", line, column, yytext); column += yyleng;}
+{type-identifier}	printToken("type-identifier", yytext);
+{object-identifier}	printToken("object-identifier", yytext);
 
-{comment-line} 			{column += yyleng; yy_push_state(l_comment);}
+{comment-line} 		{column += yyleng; yy_push_state(l_comment);}
 <l_comment>[^\n\r]*\n 	{column += yyleng; line++; yy_pop_state();}
 <l_comment>[^\n\r]*\r 	{column = 1; yy_push_state(l_comment); yy_pop_state();}
-<l_comment><<EOF>> 		{yy_pop_state();}
+<l_comment><<EOF>> 	{yy_pop_state();}
 
 
 ("\""(.)*"\"")		{char* val = strValue(yytext) ;printf("%d,%d,string-literal,%s\n", line, column,val);free(val);column += yyleng;}
@@ -201,16 +211,17 @@ custom 				[^ \t\n\r\f\{\}\(\)\:;,+\-\*\/\^.=<"<=""<\-"]
 
 "(*"         {cout << yytext; yy_push_state(b_comment);}
 
-<b_comment>"(*"				{cout << yytext; yy_push_state(b_comment);}
+<b_comment>"(*"			{cout << yytext; yy_push_state(b_comment);}
 <b_comment>[^(*)\n]*      	{column += yyleng; cout << yytext;}  /* eat anything that's not a '*' a '(' or a ')' */
 <b_comment>"*"+[^(*)\n]*   	{column += yyleng; cout << yytext;}/* eat up '*'s not followed by ')'s */
 <b_comment>"("+[^(*\n]*		{column += yyleng; cout << yytext;}
 <b_comment>\n           	{line++; cout << endl;}
+<b_comment><<EOF>>		{cerr << "Unrecognized token: " << line << coma << column << coma <<"'"<< yytext <<"'"<< endl; column += yyleng; return 0;}
 <b_comment>"*)"        		{cout << yytext; yy_pop_state();}
 
-<<EOF>>						{cout << "End of file dear" << endl; return 0;}
-.							{cerr << "Unrecognized token: " << line << coma << column << coma << yytext << endl; column += yyleng;}
-{integer-literal}{custom}* {cerr << "Unrecognized token: " << line << coma << column << coma <<"'"<< yytext <<"'"<< endl; column += yyleng;}
+<<EOF>>				{cout << "End of file dear" << endl; return 0;}
+.				{cerr << "Unrecognized token: " << line << coma << column << coma << yytext << endl; column += yyleng;}
+{integer-literal}{custom}* 	{cerr << "Unrecognized token: " << line << coma << column << coma <<"'"<< yytext <<"'"<< endl; column += yyleng;}
 
 %%
 int main(int argc, char** argv) {
